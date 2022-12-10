@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -28,10 +29,23 @@ type Target struct {
 	Header http.Header `json:"header,omitempty"`
 }
 
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func RandString(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
+}
+
 // Request creates an *http.Request out of Target and returns it along with an
 // error in case of failure.
 func (t *Target) Request() (*http.Request, error) {
-	req, err := http.NewRequest(t.Method, t.URL, bytes.NewReader(t.Body))
+	requestUrl := t.URL
+	requestUrl = strings.ReplaceAll(requestUrl, "{RANDOM_STRING}", RandString(8))
+
+	req, err := http.NewRequest(t.Method, requestUrl, bytes.NewReader(t.Body))
 	if err != nil {
 		return nil, err
 	}
@@ -116,12 +130,11 @@ func (tr Targeter) Decode(t *Target) error {
 // The method and url fields are required. If present, the body field must be base64 encoded.
 // The generated [JSON Schema](lib/target.schema.json) defines the format in detail.
 //
-//    {"method":"POST", "url":"https://goku/1", "header":{"Content-Type":["text/plain"], "body": "Rk9P"}
-//    {"method":"GET",  "url":"https://goku/2"}
+//	{"method":"POST", "url":"https://goku/1", "header":{"Content-Type":["text/plain"], "body": "Rk9P"}
+//	{"method":"GET",  "url":"https://goku/2"}
 //
 // body will be set as the Target's body if no body is provided in each target definiton.
 // hdr will be merged with the each Target's headers.
-//
 func NewJSONTargeter(src io.Reader, body []byte, header http.Header) Targeter {
 	type reader struct {
 		*bufio.Reader
@@ -242,13 +255,13 @@ func ReadAllTargets(t Targeter) (tgts []Target, err error) {
 // NewHTTPTargeter returns a new Targeter that decodes one Target from the
 // given io.Reader on every invocation. The format is as follows:
 //
-//    GET https://foo.bar/a/b/c
-//    Header-X: 123
-//    Header-Y: 321
-//    @/path/to/body/file
+//	GET https://foo.bar/a/b/c
+//	Header-X: 123
+//	Header-Y: 321
+//	@/path/to/body/file
 //
-//    POST https://foo.bar/b/c/a
-//    Header-X: 123
+//	POST https://foo.bar/b/c/a
+//	Header-X: 123
 //
 // body will be set as the Target's body if no body is provided.
 // hdr will be merged with the each Target's headers.
