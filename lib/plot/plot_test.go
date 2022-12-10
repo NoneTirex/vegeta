@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
+	vegeta "github.com/NoneTirex/vegeta/v12/lib"
+	"github.com/NoneTirex/vegeta/v12/lib/lttb"
 	"github.com/google/go-cmp/cmp"
-	vegeta "github.com/tsenart/vegeta/v12/lib"
-	"github.com/tsenart/vegeta/v12/lib/lttb"
 )
 
 var update = flag.Bool("update", false, "Update .golden files")

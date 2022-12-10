@@ -10,7 +10,7 @@ import (
 
 	"github.com/alecthomas/jsonschema"
 
-	vegeta "github.com/tsenart/vegeta/v12/lib"
+	vegeta "github.com/NoneTirex/vegeta/v12/lib"
 )
 
 func main() {
